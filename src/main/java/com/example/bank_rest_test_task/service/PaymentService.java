@@ -49,7 +49,7 @@ public class PaymentService {
 
         chekCard(fromCard, toCard);
 
-        if (fromCard.getBalance().compareTo(paymentDto.amount()) <= 0) {
+        if (fromCard.getBalance().compareTo(paymentDto.amount()) < 0) {
             throw new InsufficientFundsException("There are not enough funds on the card");
         }
 

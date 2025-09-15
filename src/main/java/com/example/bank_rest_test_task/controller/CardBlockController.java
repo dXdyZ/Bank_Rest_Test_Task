@@ -64,7 +64,6 @@ public class CardBlockController implements CardBlockControllerDocs {
     }
 
 
-    //TODO написать тест
     @PostMapping("/search")
     public ResponseEntity<PageResponse<CardBlockRequestDto>> searchCardBlockRequest(
             @RequestBody CardBlockRequestFilter filter,

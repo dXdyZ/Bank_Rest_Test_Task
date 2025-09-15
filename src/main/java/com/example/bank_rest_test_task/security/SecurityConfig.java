@@ -76,13 +76,16 @@ public class SecurityConfig {
                                 "/error").permitAll()
                         .requestMatchers("/admin/cards/**").hasRole("ADMIN")
                         .requestMatchers("/users/**").hasRole("ADMIN")
-                        .requestMatchers("/blocks/process", "/blocks/filter", "/blocks/processed-by/**", "/blocks/{id}").hasRole("ADMIN")
+                        .requestMatchers("/blocks/process",
+                                "/blocks/filter",
+                                "/blocks/processed-by/**",
+                                "/blocks/{id}",
+                                "/blocks/search").hasRole("ADMIN")
                         .requestMatchers("/cards/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/payments/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/blocks").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
-                
                 .build();
     }
 
