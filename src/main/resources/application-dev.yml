@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: Bank_REST_Test_Task
+  liquibase:
+    change-log: classpath:db/db.changelog-master.yaml
+    enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bank
+    username: user
+    password: user
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate.hibernate.default_batch_fetch_size: 50
+jasypt:
+  encryptor:
+    password: 1b23c9652fd6e730365c4c83fb5e994670f8f9a8547a22c5c7dd01981bafbb57
+    algorithm: PBEWITHHMACSHA512ANDAES_256
+payment:
+  card:
+    tokenization:
+      hash-key: c507ae74b9a62b8940796d7e43035b7d23b9e9bb7517975fbfed372527697dc5
+jwt:
+  access:
+    expiration: 3600000
+  refresh:
+    expiration: 1209600000
+  keys:
+    path: ./jwt
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /v3/api-docs.yaml
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+cors:
+  allowed-origins: "https://app.example.com"
+
+logging:
+  level:
+    org.springframework.web: debug
+    org.springframework.security: debug

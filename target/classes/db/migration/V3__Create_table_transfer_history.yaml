@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-transfer-history
+      author: Ilyin_Timur
+      changes:
+        - createTable:
+            tableName: transfers_history
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: from_card_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_card_card_from_id
+                    references: cards(id)
+                    onDelete: SET NULL
+              - column:
+                  name: to_card_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_card_card_to_id
+                    references: cards(id)
+                    onDelete: SET NULL
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_user_id
+                    references: users(id)
+              - column:
+                  name: amount
+                  type: numeric(19, 4)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timestamp
+                  type: timestamptz
+                  constraints:
+                    nullable: false
+              - column:
+                  name: comment
+                  type: text

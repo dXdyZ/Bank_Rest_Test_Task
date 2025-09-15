@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DiffGenerationConfig">
+    <option name="snapshotDb" value="false" />
+    <option name="snapshotModelValue" value="Bank_REST_Test_Task:Bank_REST_Test_Task" />
+    <option name="updateChangeLogPath" value="src/main/resources/db/db.changelog-master.yaml" />
+  </component>
+</project>

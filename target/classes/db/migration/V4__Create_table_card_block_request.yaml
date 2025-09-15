@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-block-request
+      author: Ilyin_Timur
+      changes:
+        - createTable:
+            tableName: card_block_requests
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: card_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_card_card_id
+                    references: cards(id)
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_user_user_id
+                    references: users(id)
+              - column:
+                  name: processed_by
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_user_processed_by
+                    references: users(id)
+                    nullable: true
+              - column:
+                  name: reason
+                  type: varchar(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block_request_status
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processed_at
+                  type: timestamptz
+                  constraints:
+                    nullable: true
+              - column:
+                  name: create_at
+                  type: timestamptz
+                  constraints:
+                    nullable: false

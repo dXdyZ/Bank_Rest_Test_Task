@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-card
+      author: Ilyin_Timur
+      changes:
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: encrypted_number
+                  type: varchar
+                  constraints:
+                    unique: true
+              - column:
+                  name: search_hash
+                  type: varchar
+              - column:
+                  name: validity_period
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_card
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: numeric(19, 4)
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
+              - column:
+                  name: first8
+                  type: varchar(8)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last4
+                  type: varchar(4)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_user_user_id
+                    references: users(id)
+                    deleteCascade: true

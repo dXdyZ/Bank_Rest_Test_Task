@@ -1,0 +1,12 @@
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/BankRestTestTaskApplicationTests.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/controller/AdminCardControllerTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/controller/AuthControllerTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/controller/CardBlockControllerTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/controller/PaymentControllerTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/controller/UserCardControllerTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/controller/UserControllerTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/service/AuthServiceTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/service/CardBlockRequestServiceTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/service/CardServiceTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/service/PaymentServiceTest.java
+/home/another/Project/developering/Bank_REST_Test_Task/src/test/java/com/example/bank_rest_test_task/service/UserServiceTest.java
