@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,8 +33,10 @@ public class AdminCardController implements AdminCardControllerDocs {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createCard(@Valid @RequestBody CardCreateDto cardCreateDto) {
-        cardService.createCard(cardCreateDto);
+    public void createCard(@Valid @RequestBody CardCreateDto cardCreateDto,
+                           @AuthenticationPrincipal Jwt jwt) {
+        Long adminId = Long.valueOf(jwt.getSubject());
+        cardService.createCard(cardCreateDto, adminId);
     }
 
     @GetMapping("/{id}")
@@ -60,14 +64,18 @@ public class AdminCardController implements AdminCardControllerDocs {
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCardById(@Positive(message = "Id must not be less than zero") @PathVariable Long id) {
-        cardService.deleteCardById(id);
+    public ResponseEntity<?> deleteCardById(@Positive(message = "Id must not be less than zero") @PathVariable Long id,
+                                            @AuthenticationPrincipal Jwt jwt) {
+        Long adminId = Long.valueOf(jwt.getSubject());
+        cardService.deleteCardById(id, adminId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/by-number")
-    public ResponseEntity<?> deleteCardByCardNumber(@CreditCardNumber @RequestParam("number") String number) {
-        cardService.deleteCardByCardNumber(number);
+    public ResponseEntity<?> deleteCardByCardNumber(@CreditCardNumber @RequestParam("number") String number,
+                                                    @AuthenticationPrincipal Jwt jwt) {
+        Long adminId = Long.valueOf(jwt.getSubject());
+        cardService.deleteCardByCardNumber(number, adminId);
         return ResponseEntity.noContent().build();
     }
 
@@ -81,8 +89,6 @@ public class AdminCardController implements AdminCardControllerDocs {
     public ResponseEntity<PageResponse<CardDto>> getAllCards(@PageableDefault(size = 6, sort = "validityPeriod") Pageable pageable) {
         return ResponseEntity.ok(PageResponse.from(cardService.findAllCards(pageable).map(cardDtoFactory::createCardDtoForAdmin)));
     }
-
-    //TODO добавить поинт в spring security
 
     /**
      * Получение карт по фильтрам

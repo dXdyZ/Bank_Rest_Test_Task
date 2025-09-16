@@ -1,0 +1,1655 @@
+openapi: 3.1.0
+info:
+  title: Bank system
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+security:
+- bearerAuth: []
+tags:
+- name: User Management
+  description: Endpoints for administrators to manage users
+- name: User Card Management
+  description: Endpoints for users to view their own cards
+- name: Card Block Management
+  description: Endpoints for managing card block requests
+- name: Payment Management
+  description: Endpoints for money transfers between user's cards
+- name: Admin Card Management
+  description: Endpoints for administrators to manage bank cards
+- name: Authentication
+  description: Endpoints for user authentication and token management
+paths:
+  /blocks/process:
+    put:
+      tags:
+      - Card Block Management
+      summary: Process a card block request
+      description: Allows an administrator to approve or reject a block request
+      operationId: processBlockRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessBlockRequestDto"
+        required: true
+      responses:
+        "200":
+          description: Block request processed successfully
+          content:
+            '*/*':
+              schema:
+                type: object
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Validation failed
+                code: 400
+                validationErrors:
+                - field: status
+                  message: Status cannot be null
+        "404":
+          description: Block request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Request to block by id: 1 not found"
+                code: 404
+  /users/register:
+    post:
+      tags:
+      - User Management
+      summary: Register a new user
+      description: Registers a new user with the USER role
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegisterDto"
+        required: true
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Validation failed
+                code: 400
+                validationErrors:
+                - field: username
+                  message: Username must be specified
+        "409":
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by name: new_user already exists"
+                code: 409
+  /payments:
+    post:
+      tags:
+      - Payment Management
+      summary: Transfer money between cards
+      description: Allows a user to transfer money between their own cards
+      operationId: transferMoney
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentDto"
+        required: true
+      responses:
+        "200":
+          description: Transfer successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "400":
+          description: Invalid input data or insufficient funds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Validation Error:
+                  description: Validation Error
+                  value:
+                    timestamp: 2024-07-30T12:34:56.789Z
+                    message: Validation failed
+                    code: 400
+                    validationErrors:
+                    - field: amount
+                      message: Amount must not be less than zero
+                Insufficient Funds:
+                  description: Insufficient Funds
+                  value:
+                    timestamp: 2024-07-30T12:34:56.789Z
+                    message: There are not enough funds on the card
+                    code: 400
+        "403":
+          description: Card is blocked or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by id: 1 is blocked for operation"
+                code: 403
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by id: 1 not found for user 1"
+                code: 404
+  /blocks:
+    post:
+      tags:
+      - Card Block Management
+      summary: Create a card block request
+      description: Allows a user to request blocking their own card
+      operationId: createBlockRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCardBlockRequestDto"
+        required: true
+      responses:
+        "201":
+          description: Block request created successfully
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Validation failed
+                code: 400
+                validationErrors:
+                - field: reason
+                  message: Reason should not be empty
+        "403":
+          description: Card is already blocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: You cannot block an inactive card
+                code: 403
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by id: 1 not found for user 1"
+                code: 404
+  /blocks/search:
+    post:
+      tags:
+      - Card Block Management
+      summary: Filter card block requests
+      description: Allows an administrator to filter block requests by various criteria
+      operationId: searchCardBlockRequest
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardBlockRequestFilter"
+        required: true
+      responses:
+        "200":
+          description: Found block requests
+          content:
+            application/json: {}
+  /auth/refresh:
+    post:
+      tags:
+      - Authentication
+      operationId: updateAccessToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: Successfully refreshed token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtTokenDto"
+        "400":
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Invalid refresh token
+                code: 400
+        "401":
+          description: Refresh token expired or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Refresh token expired or invalid
+                code: 401
+  /auth/login:
+    post:
+      tags:
+      - Authentication
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequestDto"
+        required: true
+      responses:
+        "200":
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtTokenDto"
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Validation failed
+                code: 400
+                validationErrors:
+                - field: username
+                  message: Username must not be empty
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Invalid username or password
+                code: 401
+  /admin/cards:
+    get:
+      tags:
+      - Admin Card Management
+      summary: Get card
+      description: Get all cards
+      operationId: getAllCards
+      parameters:
+      - name: page
+        in: query
+        description: Zero-based page index (0..N)
+        required: false
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        description: The size of the page to be returned
+        required: false
+        schema:
+          type: integer
+          default: 6
+          minimum: 1
+      - name: sort
+        in: query
+        description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        required: false
+        schema:
+          type: array
+          default:
+          - "validityPeriod,ASC"
+          items:
+            type: string
+      responses:
+        "200":
+          description: Card found
+          content:
+            application/json: {}
+    post:
+      tags:
+      - Admin Card Management
+      summary: Create a new card for a user
+      description: Creates a new bank card for a specified user
+      operationId: createCard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardCreateDto"
+        required: true
+      responses:
+        "201":
+          description: Card created successfully
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Validation failed
+                code: 400
+                validationErrors:
+                - field: cardNumber
+                  message: Incorrect card number format
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by id: 1 not found"
+                code: 404
+        "409":
+          description: Card already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by number: 4000123456789010 already exists"
+                code: 409
+  /admin/cards/search:
+    post:
+      tags:
+      - Admin Card Management
+      operationId: searchCard
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardSearchFilter"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponseCardDto"
+  /users/{userId}/username:
+    patch:
+      tags:
+      - User Management
+      summary: Update username
+      description: Updates the username of a specific user
+      operationId: updateUsername
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsernameUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: Username updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Validation failed
+                code: 400
+                validationErrors:
+                - field: newUsername
+                  message: New username must not be empty
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by id: 1 not found"
+                code: 404
+        "409":
+          description: Username already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by name: existing_user already exists"
+                code: 409
+  /users/{userId}/role:
+    patch:
+      tags:
+      - User Management
+      summary: Update user role
+      description: Updates the role of a specific user
+      operationId: updateRol
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRoleUpdateDto"
+        required: true
+      responses:
+        "200":
+          description: User role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: Validation failed
+                code: 400
+                validationErrors:
+                - field: role
+                  message: Role name must not be empty
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by id: 1 not found"
+                code: 404
+  /admin/cards/{cardId}/status:
+    patch:
+      tags:
+      - Admin Card Management
+      summary: Update card status
+      description: "Updates the status of a card (e.g., ACTIVE, BLOCKED)"
+      operationId: updateStatusCard
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStatusCardDto"
+        required: true
+      responses:
+        "200":
+          description: Card status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by id: 1 not found"
+                code: 404
+  /users:
+    get:
+      tags:
+      - User Management
+      operationId: getAllUser
+      parameters:
+      - name: page
+        in: query
+        description: Zero-based page index (0..N)
+        required: false
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        description: The size of the page to be returned
+        required: false
+        schema:
+          type: integer
+          default: 6
+          minimum: 1
+      - name: sort
+        in: query
+        description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        required: false
+        schema:
+          type: array
+          default:
+          - "id,ASC"
+          items:
+            type: string
+      - name: includeCards
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+      responses:
+        "200":
+          description: Users found
+          content:
+            application/json: {}
+  /users/search:
+    get:
+      tags:
+      - User Management
+      operationId: searchUserByFilter
+      parameters:
+      - name: username
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: roleName
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: includeCards
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageResponseUserDto"
+  /users/by-username/{username}:
+    get:
+      tags:
+      - User Management
+      summary: Get user by username
+      description: Retrieves user details by their username
+      operationId: getUserByUsername
+      parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 50
+          minLength: 3
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by name: john_doe not found"
+                code: 404
+    delete:
+      tags:
+      - User Management
+      summary: Delete user by username
+      description: Deletes a user by their username
+      operationId: deleteUserByUsername
+      parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 50
+          minLength: 3
+      responses:
+        "204":
+          description: User deleted successfully
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by name: john_doe not found"
+                code: 404
+  /cards:
+    get:
+      tags:
+      - User Card Management
+      summary: Get all user cards
+      description: Retrieves a paginated list of all cards belonging to the authenticated
+        user
+      operationId: getUserCards
+      parameters:
+      - name: page
+        in: query
+        description: Zero-based page index (0..N)
+        required: false
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        description: The size of the page to be returned
+        required: false
+        schema:
+          type: integer
+          default: 6
+          minimum: 1
+      - name: sort
+        in: query
+        description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        required: false
+        schema:
+          type: array
+          default:
+          - "balance,ASC"
+          items:
+            type: string
+      responses:
+        "200":
+          description: Cards found
+          content:
+            application/json: {}
+  /cards/{id}:
+    get:
+      tags:
+      - User Card Management
+      summary: Get card by ID
+      description: "Retrieves a specific card by its ID, if it belongs to the authenticated\
+        \ user"
+      operationId: getCardById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Card found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by id: 1 not found for user 1"
+                code: 404
+  /blocks/{id}:
+    get:
+      tags:
+      - Card Block Management
+      summary: Find block request by ID
+      description: Retrieves a specific block request by its ID
+      operationId: findCardBlockRequestById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Found block request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardBlockRequestDto"
+        "404":
+          description: Block request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Request for blocking by id: 1 not found"
+                code: 404
+  /blocks/processed-by/{adminId}:
+    get:
+      tags:
+      - Card Block Management
+      summary: Find block requests processed by an admin
+      description: Retrieves a paginated list of block requests processed by a specific
+        administrator
+      operationId: findCardBlockRequestByProcessed
+      parameters:
+      - name: adminId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        description: Zero-based page index (0..N)
+        required: false
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        description: The size of the page to be returned
+        required: false
+        schema:
+          type: integer
+          default: 6
+          minimum: 1
+      - name: sort
+        in: query
+        description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        required: false
+        schema:
+          type: array
+          default:
+          - "createAt,ASC"
+          items:
+            type: string
+      responses:
+        "200":
+          description: Found block requests
+          content:
+            application/json: {}
+  /admin/cards/{id}:
+    get:
+      tags:
+      - Admin Card Management
+      summary: Get card by ID
+      description: Retrieves card details by its ID
+      operationId: getCardById_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Card found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by id: 1 not found"
+                code: 404
+    delete:
+      tags:
+      - Admin Card Management
+      summary: Delete card by ID
+      description: Deletes a card by its ID
+      operationId: deleteCardById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Card deleted successfully
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by id: 1 not found"
+                code: 404
+  /admin/cards/user/{id}:
+    get:
+      tags:
+      - Admin Card Management
+      summary: Get all cards for a user
+      description: Retrieves a paginated list of all cards for a specified user
+      operationId: getUserCards_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: page
+        in: query
+        description: Zero-based page index (0..N)
+        required: false
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        description: The size of the page to be returned
+        required: false
+        schema:
+          type: integer
+          default: 6
+          minimum: 1
+      - name: sort
+        in: query
+        description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        required: false
+        schema:
+          type: array
+          default:
+          - "validityPeriod,ASC"
+          items:
+            type: string
+      responses:
+        "200":
+          description: Cards found
+          content:
+            application/json: {}
+  /admin/cards/by-username:
+    get:
+      tags:
+      - Admin Card Management
+      summary: Get card by username
+      description: Get all the user's cards by name
+      operationId: getCardsByUserName
+      parameters:
+      - name: username
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - name: page
+        in: query
+        description: Zero-based page index (0..N)
+        required: false
+        schema:
+          type: integer
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        description: The size of the page to be returned
+        required: false
+        schema:
+          type: integer
+          default: 6
+          minimum: 1
+      - name: sort
+        in: query
+        description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+        required: false
+        schema:
+          type: array
+          default:
+          - "validityPeriod,ASC"
+          items:
+            type: string
+      responses:
+        "200":
+          description: Card found
+          content:
+            application/json: {}
+  /admin/cards/by-number:
+    get:
+      tags:
+      - Admin Card Management
+      summary: Get card by card number
+      description: Retrieves card details by its number
+      operationId: getCardByCardNumber
+      parameters:
+      - name: number
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Card found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardDto"
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by: **** **** **** 9010 not found"
+                code: 404
+    delete:
+      tags:
+      - Admin Card Management
+      summary: Delete card by card number
+      description: Deletes a card by its number
+      operationId: deleteCardByCardNumber
+      parameters:
+      - name: number
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Card deleted successfully
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "Card by number: 4000123456789010 not found"
+                code: 404
+  /users/{id}:
+    delete:
+      tags:
+      - User Management
+      summary: Delete user by ID
+      description: Deletes a user by their ID
+      operationId: deleteUserById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: User deleted successfully
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                timestamp: 2024-07-30T12:34:56.789Z
+                message: "User by id: 1 not found"
+                code: 404
+components:
+  schemas:
+    ProcessBlockRequestDto:
+      type: object
+      description: Request to process a card block
+      properties:
+        requestId:
+          type: integer
+          format: int64
+          description: ID of the block request to process
+          example: 1
+        status:
+          type: string
+          description: New status for the block request
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+        adminId:
+          type: integer
+          format: int64
+          description: ID of the admin processing the request
+          example: 1
+      required:
+      - adminId
+      - requestId
+      - status
+    ErrorResponse:
+      type: object
+      description: Standard error response
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the error
+        message:
+          type: string
+          description: Error message
+          example: Validation failed
+        code:
+          type: integer
+          format: int32
+          description: HTTP status code
+          example: 400
+        validationErrors:
+          type: array
+          description: List of validation errors
+          items:
+            $ref: "#/components/schemas/ValidationError"
+    ValidationError:
+      type: object
+      description: Details of a validation error
+      properties:
+        field:
+          type: string
+          description: Field where the error occurred
+          example: username
+        message:
+          type: string
+          description: Error message for the field
+          example: Username must not be empty
+    UserRegisterDto:
+      type: object
+      description: Request to register a new user
+      properties:
+        username:
+          type: string
+          description: Username for the new user
+          example: new_user
+          maxLength: 50
+          minLength: 3
+        password:
+          type: string
+          description: Password for the new user
+          example: password123
+          maxLength: 16
+          minLength: 8
+      required:
+      - password
+      - username
+    PaymentDto:
+      type: object
+      description: Request for a payment transfer
+      properties:
+        fromCardId:
+          type: integer
+          format: int64
+          description: ID of the card to transfer from
+          example: 1
+        toCardId:
+          type: integer
+          format: int64
+          description: ID of the card to transfer to
+          example: 2
+        amount:
+          type: number
+          description: Amount to transfer
+          example: 100.5
+        comment:
+          type: string
+          description: Comment for the payment
+          example: Payment for goods
+      required:
+      - fromCardId
+      - toCardId
+    CardDto:
+      type: object
+      description: Card details
+      properties:
+        cardId:
+          type: integer
+          format: int64
+          description: Card ID
+          example: 1
+        cardNumber:
+          type: string
+          description: Masked card number
+          example: '**** **** **** 9010'
+        validityPeriod:
+          type: string
+          format: date
+          description: Expiration date of the card
+          example: 2028-12-31
+        statusCard:
+          type: string
+          description: Current status of the card
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - EXPIRED
+          - PENDING_BLOCKED
+        balance:
+          type: number
+          description: Current balance of the card
+          example: 1000.0
+    CreateCardBlockRequestDto:
+      type: object
+      description: Request to create a card block
+      properties:
+        cardId:
+          type: integer
+          format: int64
+          description: ID of the card to be blocked
+          example: 1
+        reason:
+          type: string
+          description: Reason for blocking the card
+          example: I lost my card
+          maxLength: 255
+          minLength: 5
+      required:
+      - reason
+    CardBlockRequestFilter:
+      type: object
+      description: Filters for searching card block requests. Non-null fields are
+        combined with AND.
+      properties:
+        status:
+          type: string
+          description: Request status to match
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+          example: APPROVED
+        processed:
+          type: boolean
+          description: "Processed flag: true — only processed, false — only pending.\
+            \ Omit to include both."
+          example: true
+        requesterId:
+          type: integer
+          format: int64
+          description: Requester user ID
+          example: 42
+        requesterUsername:
+          type: string
+          description: Requester username contains
+          example: john
+        processedById:
+          type: integer
+          format: int64
+          description: Processor user ID. Exact match
+          example: 7
+        reasonContains:
+          type: string
+          description: Reason text contains
+          example: lost card
+        createdFrom:
+          type: string
+          format: date-time
+          description: Created from
+          example: 2025-01-01T00:00:00Z
+        createdTo:
+          type: string
+          format: date-time
+          description: Created to
+          example: 2025-01-31T23:59:59Z
+        processedFrom:
+          type: string
+          format: date-time
+          description: Processed from
+          example: 2025-02-01T00:00:00Z
+        processedTo:
+          type: string
+          format: date-time
+          description: Processed to
+          example: 2025-02-28T23:59:59Z
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    RefreshTokenRequest:
+      type: object
+      description: Request to refresh an access token
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token
+          example: def50200f496c85c9a1c...
+          minLength: 1
+      required:
+      - refreshToken
+    JwtTokenDto:
+      type: object
+      description: JWT token response
+      properties:
+        accessToken:
+          type: string
+          description: Access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        refreshToken:
+          type: string
+          description: Refresh token
+          example: def50200f496c85c9a1c...
+    AuthRequestDto:
+      type: object
+      description: Request body for user authentication
+      properties:
+        username:
+          type: string
+          description: User's login name
+          example: john_doe
+          minLength: 1
+        password:
+          type: string
+          description: User's password
+          example: password123
+          minLength: 1
+      required:
+      - password
+      - username
+    CardCreateDto:
+      type: object
+      description: Data for creating a new card
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: User ID of the card holder
+          example: 1
+        cardNumber:
+          type: string
+          description: Card number
+          example: 4000123456789010
+        validityPeriod:
+          type: string
+          format: date
+          description: Expiration date of the card
+          example: 2028-12-31
+      required:
+      - cardNumber
+      - userId
+      - validityPeriod
+    CardSearchFilter:
+      type: object
+      description: Data for card filter
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: Id owner card
+          example: 1
+        status:
+          type: string
+          description: Current status of the card
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - EXPIRED
+          - PENDING_BLOCKED
+          example: ACTIVE
+        fullNumber:
+          type: string
+          description: Full number card
+          example: 5555555555555599
+        first8Number:
+          type: string
+          description: The first 8 digits of the card number
+          example: 55555555
+        last4Number:
+          type: string
+          description: The last 4 digits of the card number
+          example: 5599
+        validFrom:
+          type: string
+          format: date
+          description: "Validity date from. Format: YYYY-MM-DD"
+          example: 2024-01-01
+        validTo:
+          type: string
+          format: date
+          description: "Validity date to. Format: YYYY-MM-DD"
+          example: 2027-12-31
+        balanceMin:
+          type: number
+          description: Minimum balance
+          example: 0.0
+        balanceMax:
+          type: number
+          description: Maximum balance
+          example: 1000.0
+    PageResponseCardDto:
+      type: object
+      description: Page response
+      properties:
+        content:
+          type: array
+          items:
+            description: The items can be users cards and card blocking requests
+            oneOf:
+            - $ref: "#/components/schemas/CardDto"
+            - $ref: "#/components/schemas/CardBlockRequestDto"
+            - $ref: "#/components/schemas/UserDto"
+        totalElements:
+          type: integer
+          format: int64
+          description: Total elements
+          example: 55
+        totalPages:
+          type: integer
+          format: int32
+          description: Total pages
+          example: 10
+        page:
+          type: integer
+          format: int32
+          description: Number of the received page
+          example: 1
+        size:
+          type: integer
+          format: int32
+          description: How many elements are on the page
+          example: 5
+        first:
+          type: boolean
+          description: The current page is the first one
+          example: true
+        last:
+          type: boolean
+          description: The current page is the last one
+          example: false
+    UsernameUpdateDto:
+      type: object
+      description: Request to update a username
+      properties:
+        newUsername:
+          type: string
+          description: New username
+          example: john_doe_new
+          maxLength: 50
+          minLength: 3
+      required:
+      - newUsername
+    UserDto:
+      type: object
+      description: User details and card details
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: User ID
+          example: 1
+        username:
+          type: string
+          description: Username
+          example: john_doe
+        role:
+          type: string
+          description: User role
+          enum:
+          - ROLE_USER
+          - ROLE_ADMIN
+        cards:
+          type: array
+          description: List of user's cards
+          items:
+            $ref: "#/components/schemas/CardDto"
+        accountEnable:
+          type: boolean
+          description: Is the user account enabled
+          example: true
+        accountLocked:
+          type: boolean
+          description: Is the user account locked
+          example: false
+    UserRoleUpdateDto:
+      type: object
+      description: Request to update a user role
+      properties:
+        role:
+          type: string
+          description: New role for the user
+          example: ADMIN
+          minLength: 1
+          pattern: USER|ADMIN
+      required:
+      - role
+    UpdateStatusCardDto:
+      type: object
+      description: Request to update a card status
+      properties:
+        newStatus:
+          type: string
+          description: New status for the card
+          enum:
+          - ACTIVE
+          - BLOCKED
+          - EXPIRED
+          - PENDING_BLOCKED
+    PageResponseUserDto:
+      type: object
+      description: Page response
+      properties:
+        content:
+          type: array
+          items:
+            description: The items can be users cards and card blocking requests
+            oneOf:
+            - $ref: "#/components/schemas/CardDto"
+            - $ref: "#/components/schemas/CardBlockRequestDto"
+            - $ref: "#/components/schemas/UserDto"
+        totalElements:
+          type: integer
+          format: int64
+          description: Total elements
+          example: 55
+        totalPages:
+          type: integer
+          format: int32
+          description: Total pages
+          example: 10
+        page:
+          type: integer
+          format: int32
+          description: Number of the received page
+          example: 1
+        size:
+          type: integer
+          format: int32
+          description: How many elements are on the page
+          example: 5
+        first:
+          type: boolean
+          description: The current page is the first one
+          example: true
+        last:
+          type: boolean
+          description: The current page is the last one
+          example: false
+    CardBlockRequestDto:
+      type: object
+      description: Card block request details
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Request ID
+          example: 1
+        card:
+          $ref: "#/components/schemas/CardDto"
+          description: Card information
+        requester:
+          $ref: "#/components/schemas/UserDto"
+          description: User who requested the block
+        reason:
+          type: string
+          description: Reason for blocking
+          example: Card lost
+        processedBy:
+          $ref: "#/components/schemas/UserDto"
+          description: Administrator who processed the request
+        processedAt:
+          type: string
+          format: date-time
+          description: Timestamp of when the request was processed
+        blockRequestStatus:
+          type: string
+          description: Status of the block request
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+        createAt:
+          type: string
+          format: date-time
+          description: Timestamp of when the request was created
+  parameters:
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        format: int32
+    size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        format: int32
+    sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      name: bearerAuth
+      scheme: bearer
+      bearerFormat: JWT

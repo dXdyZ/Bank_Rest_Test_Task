@@ -49,11 +49,14 @@ public class UserControllerTest {
     @Test
     void registerUser() throws Exception {
         UserRegisterDto userRegisterDto = new UserRegisterDto("user", "password");
-        doNothing().when(userService).registrationUser(any(UserRegisterDto.class));
+        doNothing().when(userService).registrationUser(any(UserRegisterDto.class), anyLong());
 
         mockMvc.perform(post("/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userRegisterDto)).with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
+                        .content(objectMapper.writeValueAsString(userRegisterDto))
+                        .with(jwt()
+                                .jwt(j -> j.subject("1"))
+                                .authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().isCreated());
     }
 
@@ -91,7 +94,7 @@ public class UserControllerTest {
     void updateUsername() throws Exception {
         when(jwt.getSubject()).thenReturn("1");
         UsernameUpdateDto usernameUpdateDto = new UsernameUpdateDto("newUsername");
-        when(userService.updateUsername(anyString(), anyLong())).thenReturn(new User());
+        when(userService.updateUsername(anyString(), anyLong(), anyLong())).thenReturn(new User());
         when(userDtoFactory.createUserDtoAndCardDtoForAdminWithCards(any(User.class))).thenReturn(new UserDto());
 
         mockMvc.perform(patch("/users/1/username")
@@ -105,7 +108,7 @@ public class UserControllerTest {
     void updateRol() throws Exception {
         when(jwt.getSubject()).thenReturn("1");
         UserRoleUpdateDto userRoleUpdateDto = new UserRoleUpdateDto("ADMIN");
-        when(userService.updateRole(any(String.class), anyLong())).thenReturn(new User());
+        when(userService.updateRole(anyString(), anyLong(), anyLong())).thenReturn(new User());
         when(userDtoFactory.createUserDtoAndCardDtoForAdminWithCards(any(User.class))).thenReturn(new UserDto());
 
         mockMvc.perform(patch("/users/1/role")

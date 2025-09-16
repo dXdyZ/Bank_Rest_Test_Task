@@ -15,6 +15,8 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,7 +53,8 @@ public interface UserControllerDocs {
                                         "code": 409
                                     }""")))
     })
-    void registerUser(@Valid @RequestBody UserRegisterDto userRegisterDto);
+    void registerUser(@Valid @RequestBody UserRegisterDto userRegisterDto,
+                      @AuthenticationPrincipal Jwt jwt);
 
     @Operation(summary = "Get user by username", description = "Retrieves user details by their username")
     @ApiResponses(value = {
@@ -142,7 +145,8 @@ public interface UserControllerDocs {
                                     }""")))
     })
     ResponseEntity<UserDto> updateUsername(@Positive(message = "Id must not be less than zero") @PathVariable Long userId,
-                                           @Valid @RequestBody UsernameUpdateDto usernameUpdateDto);
+                                           @Valid @RequestBody UsernameUpdateDto usernameUpdateDto,
+                                           @AuthenticationPrincipal Jwt jwt);
 
     @Operation(summary = "Update user role", description = "Updates the role of a specific user")
     @ApiResponses(value = {
@@ -175,7 +179,8 @@ public interface UserControllerDocs {
                                     }""")))
     })
     ResponseEntity<UserDto> updateRol(@Positive(message = "Id must not be less than zero") @PathVariable Long userId,
-                                      @Valid @RequestBody UserRoleUpdateDto userRoleUpdateDto);
+                                      @Valid @RequestBody UserRoleUpdateDto userRoleUpdateDto,
+                                      @AuthenticationPrincipal Jwt jwt);
 
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Users found",

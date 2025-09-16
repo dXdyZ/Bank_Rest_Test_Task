@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,7 +64,8 @@ public interface AdminCardControllerDocs {
                                         "code": 409
                                     }""")))
     })
-    void createCard(@Valid @RequestBody CardCreateDto cardCreateDto);
+    void createCard(@Valid @RequestBody CardCreateDto cardCreateDto,
+                    @AuthenticationPrincipal Jwt jwt);
 
     @Operation(summary = "Get card by ID", description = "Retrieves card details by its ID")
     @ApiResponses(value = {
@@ -137,7 +140,8 @@ public interface AdminCardControllerDocs {
                                         "code": 404
                                     }""")))
     })
-    ResponseEntity<?> deleteCardById(@Positive(message = "Id must not be less than zero") @PathVariable Long id);
+    ResponseEntity<?> deleteCardById(@Positive(message = "Id must not be less than zero") @PathVariable Long id,
+                                     @AuthenticationPrincipal Jwt jwt);
 
     @Operation(summary = "Delete card by card number", description = "Deletes a card by its number")
     @ApiResponses(value = {
@@ -152,7 +156,8 @@ public interface AdminCardControllerDocs {
                                         "code": 404
                                     }""")))
     })
-    ResponseEntity<?> deleteCardByCardNumber(@CreditCardNumber @RequestParam("number") String number);
+    ResponseEntity<?> deleteCardByCardNumber(@CreditCardNumber @RequestParam("number") String number,
+                                             @AuthenticationPrincipal Jwt jwt);
 
 
     @Operation(summary = "Get card by username", description = "Get all the user's cards by name")

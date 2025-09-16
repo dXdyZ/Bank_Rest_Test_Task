@@ -22,7 +22,7 @@ public interface CardBlockRequestRepository extends JpaRepository<CardBlockReque
      * @return результат выборки
      */
     @EntityGraph(attributePaths = {"card", "requester", "processedBy"})
-    Page<CardBlockRequest> findAllWithRelations(Specification<CardBlockRequest> spec, Pageable pageable);
+    Page<CardBlockRequest> findAll(Specification<CardBlockRequest> spec, Pageable pageable);
 
 
     Page<CardBlockRequest> findAllByProcessedBy_Id(Long processedById, Pageable pageable);

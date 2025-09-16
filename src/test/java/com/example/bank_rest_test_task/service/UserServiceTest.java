@@ -93,8 +93,15 @@ class UserServiceTest {
 
         when(passwordEncoder.encode(password)).thenReturn(encodePassword);
         when(userRepository.existsByUsername(username)).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(
+                User.builder()
+                        .username(username)
+                        .password(encodePassword)
+                        .role(UserRole.ROLE_USER)
+                        .build()
+        );
 
-        userService.registrationUser(regDto);
+        userService.registrationUser(regDto, 1L);
 
         verify(userRepository).existsByUsername(username);
         verify(userRepository).save(argThat(actUser ->
@@ -114,7 +121,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(username)).thenReturn(true);
 
         DuplicateUserException exception = assertThrows(DuplicateUserException.class,
-                () -> userService.registrationUser(regDto));
+                () -> userService.registrationUser(regDto, 1L));
 
         assertInstanceOf(DuplicateUserException.class, exception);
         assertEquals("User by name: user already exists", exception.getMessage());
@@ -137,7 +144,7 @@ class UserServiceTest {
                         .username(username)
                 .build());
 
-        User result = userService.updateUsername(username, id);
+        User result = userService.updateUsername(username, id, 1L);
 
         assertNotNull(result);
         assertEquals(username, result.getUsername());
@@ -152,7 +159,7 @@ class UserServiceTest {
         when(userRepository.findById(id)).thenReturn(Optional.empty());
 
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
-                () -> userService.updateUsername(username, id));
+                () -> userService.updateUsername(username, id, 1L));
 
         assertInstanceOf(UserNotFoundException.class, exception);
         assertEquals("User by id: 1 not found", exception.getMessage());
@@ -168,7 +175,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(username)).thenReturn(true);
 
         DuplicateUserException exception = assertThrows(DuplicateUserException.class,
-                () -> userService.updateUsername(username, id));
+                () -> userService.updateUsername(username, id, 1L));
 
         assertInstanceOf(DuplicateUserException.class, exception);
         assertEquals("User by name: newUsername already exists", exception.getMessage());
@@ -190,7 +197,7 @@ class UserServiceTest {
                         .role(UserRole.ROLE_ADMIN)
                 .build());
 
-        User result = userService.updateRole(roleName, id);
+        User result = userService.updateRole(roleName, id, 1L);
 
         assertNotNull(result);
         assertEquals(UserRole.ROLE_ADMIN, result.getRole());
@@ -205,7 +212,7 @@ class UserServiceTest {
         when(userRepository.findById(id)).thenReturn(Optional.empty());
 
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
-                () -> userService.updateRole(roleName, id));
+                () -> userService.updateRole(roleName, id, 1L));
 
         assertInstanceOf(UserNotFoundException.class, exception);
         assertEquals("User by id: 1 not found", exception.getMessage());

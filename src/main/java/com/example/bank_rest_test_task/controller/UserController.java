@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +32,10 @@ public class UserController implements UserControllerDocs {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerUser(@Valid @RequestBody UserRegisterDto userRegisterDto) {
-        userService.registrationUser(userRegisterDto);
+    public void registerUser(@Valid @RequestBody UserRegisterDto userRegisterDto,
+                             @AuthenticationPrincipal Jwt jwt) {
+        Long adminId = Long.valueOf(jwt.getSubject());
+        userService.registrationUser(userRegisterDto, adminId);
     }
 
     /**
@@ -108,20 +112,26 @@ public class UserController implements UserControllerDocs {
 
     @PatchMapping("/{userId}/username")
     public ResponseEntity<UserDto> updateUsername(@Positive(message = "Id must not be less than zero") @PathVariable Long userId,
-                                                  @Valid @RequestBody UsernameUpdateDto usernameUpdateDto) {
+                                                  @Valid @RequestBody UsernameUpdateDto usernameUpdateDto,
+                                                  @AuthenticationPrincipal Jwt jwt) {
+        Long adminId = Long.valueOf(jwt.getSubject());
+
         return ResponseEntity.ok(
                 userDtoFactory.createUserDtoWithoutCards(
-                        userService.updateUsername(usernameUpdateDto.newUsername(), userId)
+                        userService.updateUsername(usernameUpdateDto.newUsername(), userId, adminId)
                 )
         );
     }
 
     @PatchMapping("/{userId}/role")
     public ResponseEntity<UserDto> updateRol(@Positive(message = "Id must not be less than zero") @PathVariable Long userId,
-                                             @Valid @RequestBody UserRoleUpdateDto userRoleUpdateDto) {
+                                             @Valid @RequestBody UserRoleUpdateDto userRoleUpdateDto,
+                                             @AuthenticationPrincipal Jwt jwt) {
+        Long adminId = Long.valueOf(jwt.getSubject());
+
         return ResponseEntity.ok(
                 userDtoFactory.createUserDtoWithoutCards(
-                        userService.updateRole(userRoleUpdateDto.role(), userId)
+                        userService.updateRole(userRoleUpdateDto.role(), userId, adminId)
                 )
         );
     }

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class CardBlockRequestServiceTest {
@@ -191,7 +191,7 @@ class CardBlockRequestServiceTest {
                 1
         );
 
-        when(cardBlockRequestRepository.findAllWithRelations(any(), any(Pageable.class))).thenReturn(page);
+        when(cardBlockRequestRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
         Page<CardBlockRequest> result = cardBlockRequestService.searCardBlockRequest(filter, pageable);
 
@@ -212,7 +212,7 @@ class CardBlockRequestServiceTest {
                 0
         );
 
-        when(cardBlockRequestRepository.findAllWithRelations(any(), any(Pageable.class))).thenReturn(page);
+        when(cardBlockRequestRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
         Page<CardBlockRequest> result = cardBlockRequestService.searCardBlockRequest(filter, pageable);
 

@@ -6,6 +6,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
+/**
+ * Кастомная реализация {@link UserDetails}
+ */
 public class CustomUserDetails implements UserDetails {
 
     @Getter
@@ -17,6 +20,11 @@ public class CustomUserDetails implements UserDetails {
     private final Collection<? extends GrantedAuthority> authorities;
 
     private final Boolean accountEnable;
+
+    /**
+     * {@code false} - значит аккаунт не заблокирован
+     * {@code true} - значит аккаунт заблокирован
+     */
     private final Boolean accountLocked;
 
     public CustomUserDetails(Long userId, String username, String password, Collection<? extends GrantedAuthority> authorities, Boolean accountEnable, Boolean accountLocked) {
@@ -49,6 +57,18 @@ public class CustomUserDetails implements UserDetails {
         return UserDetails.super.isAccountNonExpired();
     }
 
+    /**
+     * Возвращает признак того, что аккаунт НЕ заблокирован.
+     * Основан на инверсии флага {@code accountLocked}.
+     * <p>
+     * Правила:
+     * <ul>
+     *   <li>{@code accountLocked = true} → метод вернёт {@code false} (аккаунт заблокирован)</li>
+     *   <li>{@code accountLocked = false} → метод вернёт {@code true} (аккаунт не заблокирован)</li>
+     * </ul>
+     *
+     * @return {@code true}, если аккаунт не заблокирован; {@code false}, если заблокирован
+     */
     @Override
     public boolean isAccountNonLocked() {
         return !accountLocked;
@@ -63,5 +83,4 @@ public class CustomUserDetails implements UserDetails {
     public boolean isEnabled() {
         return accountEnable;
     }
-
 }

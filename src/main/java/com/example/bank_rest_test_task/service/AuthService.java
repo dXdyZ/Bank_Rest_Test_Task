@@ -2,6 +2,8 @@ package com.example.bank_rest_test_task.service;
 
 import com.example.bank_rest_test_task.dto.JwtTokenDto;
 import com.example.bank_rest_test_task.exception.AuthenticationFailedException;
+import com.example.bank_rest_test_task.util.LogMarker;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
  * - аутентифицирует пользователя через AuthenticationManager;
  * - формирует access / refresh токены через TokenService.
  */
+@Slf4j
 @Service
 public class AuthService {
     private final AuthenticationManager authenticationManager;
@@ -43,12 +46,16 @@ public class AuthService {
                             password
                     )
             );
+            log.info(LogMarker.LOGIN.getMarker(), "action=AUTH_LOGIN | result=SUCCESSFULLY | reason=- | username={}", username);
             return tokenService.getTokens(authentication.getName());
         } catch (DisabledException e) {
+            log.warn(LogMarker.LOGIN.getMarker(), "action=AUTH_LOGIN | result=FAILURE | reason=ACCOUNT_DISABLE | username={}", username);
             throw new AuthenticationFailedException("Account is disable");
         } catch (LockedException e) {
+            log.warn(LogMarker.LOGIN.getMarker(), "action=AUTH_LOGIN | result=FAILURE | reason=ACCOUNT_LOCKED | username={}", username);
             throw new AuthenticationFailedException("Account is locked");
         } catch (BadCredentialsException e) {
+            log.warn(LogMarker.LOGIN.getMarker(), "action=AUTH_LOGIN | result=FAILURE | reason=BAD_CREDENTIALS | username={}", username);
             throw new AuthenticationFailedException("Invalid username or password");
         }
     }

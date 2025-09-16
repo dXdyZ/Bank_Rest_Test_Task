@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Кастомная реализация {@link UserDetailsService}
+ */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
@@ -18,6 +21,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Получает пользователя по имени из базы данных и преобразовывает его в {@link CustomUserDetails}
+     *
+     * @param username имя пользователя который авторизовался
+     * @return {@link UserDetails}
+     * @throws UsernameNotFoundException если пользователя с таким именем не существует
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username).orElseThrow(
@@ -33,6 +43,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
 
+    /**
+     * Получает {@link CustomUserDetails} из {@link UserDetails}
+     *
+     * @param userDetails объект для преобразования
+     * @return {@link CustomUserDetails}
+     */
     public CustomUserDetails getCustomUserDetails(UserDetails userDetails) {
         if (!(userDetails instanceof CustomUserDetails customUserDetails)) {
             throw new IllegalArgumentException("UserDetails must be an instance of CustomUserDetails");
@@ -40,6 +56,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         return customUserDetails;
     }
 
+    /**
+     * Получает пользователя по id из базы данных и преобразовывает его в {@link CustomUserDetails}
+     *
+     * @param id пользователя которого нужно найти
+     * @return {@link UserDetails}
+     * @throws UsernameNotFoundException если пользователя с таким именем не существует
+     */
     public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UsernameNotFoundException("User not found"));

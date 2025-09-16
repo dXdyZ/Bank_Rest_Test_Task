@@ -1,6 +1,8 @@
 package com.example.bank_rest_test_task.service;
 
 import com.example.bank_rest_test_task.dto.CardCreateDto;
+import com.example.bank_rest_test_task.entity.Card;
+import com.example.bank_rest_test_task.entity.StatusCard;
 import com.example.bank_rest_test_task.entity.User;
 import com.example.bank_rest_test_task.exception.CardDuplicateException;
 import com.example.bank_rest_test_task.repository.CardRepository;
@@ -48,8 +50,20 @@ class CardServiceTest {
         when(cryptoService.calculationCardHash(cardNumber)).thenReturn(searchHash);
         when(cryptoService.encrypt(cardNumber)).thenReturn(cryptNumber);
         when(cardRepository.existsBySearchHash(searchHash)).thenReturn(false);
+        when(cardRepository.save(any(Card.class))).thenReturn(
+                Card.builder()
+                        .encryptNumber(cryptNumber)
+                        .user(user)
+                        .validityPeriod(validPer)
+                        .searchHash(searchHash)
+                        .statusCard(StatusCard.ACTIVE)
+                        .last4("4123")
+                        .first8("12341234")
+                        .build()
+        );
 
-        cardService.createCard(cardCreateDto);
+
+        cardService.createCard(cardCreateDto, 1L);
 
         verify(userService).findUserById(userId);
         verify(cardRepository).existsBySearchHash(searchHash);
@@ -79,7 +93,7 @@ class CardServiceTest {
         when(cryptoService.calculationCardHash(cardNumber)).thenReturn(searchHash);
 
         CardDuplicateException exception = assertThrows(CardDuplicateException.class,
-                () -> cardService.createCard(cardCreateDto));
+                () -> cardService.createCard(cardCreateDto, 1L));
 
         assertInstanceOf(CardDuplicateException.class, exception);
         assertEquals("Card by number: %s already exists".formatted(cardNumber), exception.getMessage());

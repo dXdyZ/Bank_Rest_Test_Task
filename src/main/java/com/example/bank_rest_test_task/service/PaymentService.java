@@ -6,6 +6,8 @@ import com.example.bank_rest_test_task.entity.StatusCard;
 import com.example.bank_rest_test_task.entity.TransferHistory;
 import com.example.bank_rest_test_task.exception.CardBlockedException;
 import com.example.bank_rest_test_task.exception.InsufficientFundsException;
+import com.example.bank_rest_test_task.util.LogMarker;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import java.util.List;
  * - достаточность средств;
  * - фиксирует перевод в истории.
  */
+@Slf4j
 @Service
 public class PaymentService {
     private final TransferHistoryService transferHistoryService;
@@ -50,6 +53,8 @@ public class PaymentService {
         chekCard(fromCard, toCard);
 
         if (fromCard.getBalance().compareTo(paymentDto.amount()) < 0) {
+            log.warn(LogMarker.AUDIT.getMarker(), "action=TRANSFER_MONEY | result=FAILURE | reason=INSUFFICIENT_FUNDS | userId={} | amount={} | fromCardId={} | toCardId={}",
+                    userId, paymentDto.amount(), fromCard.getId(), toCard.getId());
             throw new InsufficientFundsException("There are not enough funds on the card");
         }
 
@@ -64,8 +69,13 @@ public class PaymentService {
                         .comment(paymentDto.comment())
                         .timestamp(OffsetDateTime.now())
                 .build());
+
         cardService.saveCard(fromCard);
         cardService.saveCard(toCard);
+
+        log.info(LogMarker.AUDIT.getMarker(), "action=TRANSFER_MONEY | result=SUCCESSFULLY | reason=- | userId={} | amount={} | fromCardId={} | toCardId={}",
+                userId, paymentDto.amount(), fromCard.getId(), toCard.getId());
+
         return List.of(fromCard, toCard);
     }
 

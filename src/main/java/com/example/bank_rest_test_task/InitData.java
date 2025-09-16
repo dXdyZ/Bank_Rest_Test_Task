@@ -55,6 +55,8 @@ public class InitData {
                 .balance(BigDecimal.valueOf(600))
                 .searchHash(cryptoService.calculationCardHash(cardNumber))
                 .user(user)
+                .last4("5599")
+                .first8("55555555")
                 .build();
 
         user.setCards(List.of(card));

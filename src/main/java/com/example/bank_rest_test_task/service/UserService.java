@@ -6,6 +6,8 @@ import com.example.bank_rest_test_task.entity.UserRole;
 import com.example.bank_rest_test_task.exception.DuplicateUserException;
 import com.example.bank_rest_test_task.exception.UserNotFoundException;
 import com.example.bank_rest_test_task.repository.UserRepository;
+import com.example.bank_rest_test_task.util.LogMarker;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * Пароли хранятся только в виде хэша.
  */
+@Slf4j
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -105,18 +108,23 @@ public class UserService {
      *
      * @param newUsername новое имя пользователя
      * @param userId id пользователя, которому обновляется имя
+     * @param adminId id админа, который назначал роль
      * @return {@link User} обновленные данные пользователя
      * @throws UserNotFoundException если пользователя не существует
      * @throws DuplicateUserException если пользователь с таким именем существует
      */
     @Transactional
-    public User updateUsername(String newUsername, Long userId) {
+    public User updateUsername(String newUsername, Long userId, Long adminId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User by id: %s not found".formatted(userId)));
         if (userRepository.existsByUsername(newUsername)) {
             throw new DuplicateUserException("User by name: %s already exists".formatted(newUsername));
         }
         user.setUsername(newUsername);
+
+        log.info(LogMarker.AUDIT.getMarker(), "action=UPDATE_USERNAME | result=SUCCESSFULLY | reason=- | adminId={} | userId={} | newUsername={}",
+                adminId, user.getId(), newUsername);
+
         return userRepository.save(user);
     }
 
@@ -125,16 +133,21 @@ public class UserService {
      * Получает пользователя с помощью метода {@link UserRepository#findById(Object)} и устанавливает ему новую роль
      *
      * @param roleName новая роль {@link UserRole#ROLE_USER} или {@link UserRole#ROLE_ADMIN}
+     * @param adminId id админа, который назначал роль
      * @param userId id пользователя, которому устанавливается роль
      * @return {@link User} обновленные данные пользователя
      * @throws UserNotFoundException если пользователя не существует
      */
     @Transactional
-    public User updateRole(String roleName, Long userId) {
+    public User updateRole(String roleName, Long userId, Long adminId) {
         String modRole = "ROLE_" + roleName.toUpperCase();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User by id: %s not found".formatted(userId)));
         user.setRole(UserRole.valueOf(modRole));
+
+        log.info(LogMarker.AUDIT.getMarker(), "action=UPDATE_ROLE | result=SUCCESSFULLY | reason=- | adminId={} | userId={} | role={}",
+                adminId, user.getId(), modRole);
+
         return userRepository.save(user);
     }
 
@@ -142,17 +155,22 @@ public class UserService {
      * Регистрирует нового пользователя
      *
      * @param userRegisterDto данные создаваемого пользователя
+     * @param adminId id админа, который назначал роль
      */
     @Transactional
-    public void registrationUser(UserRegisterDto userRegisterDto) {
+    public void registrationUser(UserRegisterDto userRegisterDto, Long adminId) {
         if (userRepository.existsByUsername(userRegisterDto.username())) {
             throw new DuplicateUserException("User by name: %s already exists".formatted(userRegisterDto.username()));
         }
-        userRepository.save(User.builder()
+
+        User user = userRepository.save(User.builder()
                 .username(userRegisterDto.username())
                 .password(passwordEncoder.encode(userRegisterDto.password()))
                 .role(UserRole.ROLE_USER)
                 .build());
+
+        log.info(LogMarker.AUDIT.getMarker(), "action=CREATE_USER | result=SUCCESSFULLY | reason=- | adminId={} | newUserId={}",
+                adminId, user.getId());
     }
 
     /**

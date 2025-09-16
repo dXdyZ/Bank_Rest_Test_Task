@@ -24,8 +24,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -56,11 +55,14 @@ public class AdminCardControllerTest {
     void createCard() throws Exception {
         when(jwt.getSubject()).thenReturn("1");
         CardCreateDto cardCreateDto = new CardCreateDto(1L, "4111111111111111", LocalDate.now().plusYears(5));
-        doNothing().when(cardService).createCard(any(CardCreateDto.class));
+        doNothing().when(cardService).createCard(any(CardCreateDto.class), anyLong());
 
         mockMvc.perform(post("/admin/cards")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(cardCreateDto)).with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
+                        .content(objectMapper.writeValueAsString(cardCreateDto))
+                        .with(jwt()
+                                .jwt(j -> j.subject("1"))
+                                .authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().isCreated());
     }
 
@@ -120,16 +122,26 @@ public class AdminCardControllerTest {
     @Test
     void deleteCardById() throws Exception {
         when(jwt.getSubject()).thenReturn("1");
-        doNothing().when(cardService).deleteCardById(anyLong());
-        mockMvc.perform(delete("/admin/cards/1").with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
+        doNothing().when(cardService).deleteCardById(anyLong(), anyLong());
+        mockMvc.perform(
+                        delete("/admin/cards/1")
+                                .with(jwt()
+                                        .jwt(j -> j.subject("1"))
+                                        .authorities(new SimpleGrantedAuthority("ADMIN"))
+                                )
+                )
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void deleteCardByCardNumber() throws Exception {
         when(jwt.getSubject()).thenReturn("1");
-        doNothing().when(cardService).deleteCardByCardNumber(any(String.class));
-        mockMvc.perform(delete("/admin/cards/by-number").param("number", "4111111111111111").with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
+        doNothing().when(cardService).deleteCardByCardNumber(anyString(), anyLong());
+        mockMvc.perform(delete("/admin/cards/by-number")
+                        .param("number", "4111111111111111").
+                        with(jwt()
+                                .jwt(j -> j.subject("1"))
+                                .authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().isNoContent());
     }
 }

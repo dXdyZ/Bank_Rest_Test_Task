@@ -27,10 +27,3 @@ jwt:
 cors:
   allowed-origins: "${FRONT_URL}"
 
-logging:
-  level:
-    root: info
-    org.springframework.web: warn
-    org.hibernate: warn
-    org.apache.catalina: warn
-    com.example.bank_rest_test_task: info

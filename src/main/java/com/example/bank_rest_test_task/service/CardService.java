@@ -12,6 +12,8 @@ import com.example.bank_rest_test_task.repository.CardRepository;
 import com.example.bank_rest_test_task.repository.CardSpecification;
 import com.example.bank_rest_test_task.util.CardFormattedService;
 import com.example.bank_rest_test_task.util.CryptoService;
+import com.example.bank_rest_test_task.util.LogMarker;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * Номер хранится в зашифрованной форме; для поиска используется хэш (HMAC).
  */
+@Slf4j
 @Service
 public class CardService {
     private final CardRepository cardRepository;
@@ -61,11 +64,14 @@ public class CardService {
      * @throws CardDuplicateException если карта (по вычисленному поисковому хэшу) уже существует
      */
     @Transactional
-    public void createCard(CardCreateDto cardCreateDto) throws UserNotFoundException {
+    public void createCard(CardCreateDto cardCreateDto, Long adminId) throws UserNotFoundException {
         User user = userService.findUserById(cardCreateDto.userId());
         if (cardRepository.existsBySearchHash(cryptoService.calculationCardHash(cardCreateDto.cardNumber()))) {
             throw new CardDuplicateException("Card by number: %s already exists".formatted(cardCreateDto.cardNumber()));
         }
+
+        String cardLast4Num = CardFormattedService.getLast4Number(cardCreateDto.cardNumber());
+
         Card card = Card.builder()
                 .encryptNumber(cryptoService.encrypt(cardCreateDto.cardNumber()))
                 .user(user)
@@ -73,9 +79,13 @@ public class CardService {
                 .searchHash(cryptoService.calculationCardHash(cardCreateDto.cardNumber()))
                 .statusCard(StatusCard.ACTIVE)
                 .first8(CardFormattedService.getFirst8Number(cardCreateDto.cardNumber()))
-                .last4(CardFormattedService.getLast4Number(cardCreateDto.cardNumber()))
+                .last4(cardLast4Num)
                 .build();
-        cardRepository.save(card);
+
+        Card result = cardRepository.save(card);
+
+        log.info(LogMarker.AUDIT.getMarker(), "action=CREATE_CARD | result=SUCCESSFULLY | reason=- | actorId={} | subjectUserId={} | cardId={} | cardLast4={}",
+                adminId, user.getId(), result.getId(), cardLast4Num);
     }
 
     /**
@@ -196,10 +206,13 @@ public class CardService {
      * @throws CardNotFoundException если карты с данным id не существует
      */
     @Transactional
-    public void deleteCardById(Long cardId) {
+    public void deleteCardById(Long cardId, Long adminId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException("Card by id: %s not found".formatted(cardId)));
         cardRepository.delete(card);
+
+        log.info(LogMarker.AUDIT.getMarker(), "action=DELETE_CARD_BY_ID | result=SUCCESSFULLY | reason=- | adminId={} | cardId={} | cardLast4={}",
+                adminId, card.getId(), card.getLast4());
     }
 
     /**
@@ -209,10 +222,12 @@ public class CardService {
      * @throws CardNotFoundException если карты с данными хэшом не существует
      */
     @Transactional
-    public void deleteCardByCardNumber(String cardNumber) {
+    public void deleteCardByCardNumber(String cardNumber, Long adminId) {
         Card card = cardRepository.findBySearchHash(cryptoService.calculationCardHash(cardNumber))
                 .orElseThrow(() -> new CardNotFoundException("Card by id: %s not found".formatted(cardNumber)));
         cardRepository.delete(card);
+        log.info(LogMarker.AUDIT.getMarker(), "action=DELETE_CARD_BY_NUMBER | result=SUCCESSFULLY | reason=- | adminId={} | cardId={} | cardLast4={}",
+                adminId, card.getId(), card.getLast4());
     }
 
     /**
@@ -236,7 +251,6 @@ public class CardService {
         return cardRepository.findAll(pageable);
     }
 
-    //TODO написать тесты
     /**
      * Поиск карты по фильтрам
      *
