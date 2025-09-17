@@ -5,7 +5,7 @@
 
     <springProperty name="LOG_DIR" source="logging.file.path" defaultValue="./logs"/>
 
-    <property name="APP_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} %-5level | %logger{36} | ip=%X{ip} | %msg%n"/>
+    <property name="MARKER_APP_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} %-5level | %logger{36} | ip=%X{ip} | %msg%n"/>
 
     <springProfile name="dev">
         <root level="INFO">
@@ -18,7 +18,7 @@
         <appender name="LOGIN" class="ch.qos.logback.core.FileAppender">
             <file>${LOG_DIR}/LOGIN.log</file>
             <encoder>
-                <pattern>${APP_PATTERN}</pattern>
+                <pattern>${MARKER_APP_PATTERN}</pattern>
             </encoder>
             <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
                 <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
@@ -33,7 +33,7 @@
         <appender name="AUDIT" class="ch.qos.logback.core.FileAppender">
             <file>${LOG_DIR}/AUDIT.log</file>
             <encoder>
-                <pattern>${APP_PATTERN}</pattern>
+                <pattern>${MARKER_APP_PATTERN}</pattern>
             </encoder>
             <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
                 <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
@@ -44,10 +44,31 @@
             </filter>
         </appender>
 
+        <!-- Аппендер для общих ловогов в файл -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_DIR}/SERVICE.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/SERVICE-%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${FILE_LOG_PATTERN}</pattern>
+            </encoder>
+            <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+                <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                    <marker>AUDIT</marker>
+                    <marker>LOGIN</marker>
+                </evaluator>
+            </filter>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="LOGIN"/>
             <appender-ref ref="AUDIT"/>
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
         </root>
+
+        <logger name="com.ulisesbocchio" level="WARN"/>
     </springProfile>
 </configuration>

@@ -23,14 +23,17 @@ services:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - LOGGING_FILE_PATH=/app/logs
       - SECRET_CARD_NUMBER_KEY=${SECRET_CARD_NUMBER_KEY}
       - HASH_SECRET_KEY=${HASH_SECRET_KEY}
       - JWT_DIRECTORY_PATH=${JWT_DIRECTORY_PATH}
       - DB_URL=${DB_URL}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
+      - FRONT_URL=${FRONT_URL}
     volumes:
       - ./jwt:/app/jwt
+      - ./logs:/app/logs
     ports:
       - "8080:8080"
     depends_on:

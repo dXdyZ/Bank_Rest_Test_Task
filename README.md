@@ -30,8 +30,9 @@
 
     ```
     SECRET_CARD_NUMBER_KEY=1b23c9652fd6e730365c4c83fb5e994670f8f9a8547a22c5c7dd01981bafbb57
-    HASH_SECRET_KEY=c507ae74b9a62b8940796d7e43035b7d23b9e9bb751797dc5
+    HASH_SECRET_KEY=c507ae74b9a62b8940796d7e43035b7d23b9e9bb7517975fbfed372527697dc5
     JWT_DIRECTORY_PATH=/app/jwt
+    FRONT_URL=your value
     DB_URL=jdbc:postgresql://bank-data:5432/bank
     DB_USER=user
     DB_PASSWORD=user
@@ -78,6 +79,8 @@
     ```bash
     docker-compose ps
     ```
+3. **Файлы с логами**
+   Файлы с логами будет лежать в папке logs в корне проекта. 
 ---
 
 ### **Тестовые данные и пользователи**

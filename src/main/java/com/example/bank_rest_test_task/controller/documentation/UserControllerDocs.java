@@ -186,8 +186,19 @@ public interface UserControllerDocs {
             @ApiResponse(responseCode = "200", description = "Users found",
                     content = @Content(mediaType = "application/json"))
     })
-    @GetMapping()
     ResponseEntity<PageResponse<UserDto>> getAllUser(@ParameterObject @PageableDefault(size = 6, sort = "id") Pageable pageable,
                                                      @RequestParam(value = "includeCards", defaultValue = "false") Boolean includeCards);
 
+
+    @Operation(summary = "Search users", description = "Search users by filters")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponse.class)))
+    })
+    ResponseEntity<PageResponse<UserDto>> searchUserByFilter(
+            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "roleName", required = false) String roleName,
+            @RequestParam(value = "includeCards", defaultValue = "false") Boolean includeCards,
+            @ParameterObject @PageableDefault(size = 6, sort = "id") Pageable d);
 }

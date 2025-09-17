@@ -1,6 +1,7 @@
 package com.example.bank_rest_test_task.dto;
 
 import com.example.bank_rest_test_task.entity.UserRole;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "User details and card details")
 public class UserDto {
     @Schema(description = "User ID", example = "1")

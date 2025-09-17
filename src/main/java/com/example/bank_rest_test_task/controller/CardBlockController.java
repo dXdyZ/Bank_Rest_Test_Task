@@ -66,7 +66,7 @@ public class CardBlockController implements CardBlockControllerDocs {
 
     @PostMapping("/search")
     public ResponseEntity<PageResponse<CardBlockRequestDto>> searchCardBlockRequest(
-            @RequestBody CardBlockRequestFilter filter,
+            @Valid @RequestBody CardBlockRequestFilter filter,
             @PageableDefault(size = 6, sort = "createAr") Pageable pageable) {
         Page<CardBlockRequestDto> request = blockService.searCardBlockRequest(filter, pageable)
                 .map(cardBlockRequestDtoFactory::creatCardBlockRequestDto);

@@ -168,10 +168,18 @@ public interface AdminCardControllerDocs {
     ResponseEntity<PageResponse<CardDto>> getCardsByUserName(@NotBlank(message = "Username must be not empty") @RequestParam String username, @ParameterObject @PageableDefault(size = 6) Pageable pageable);
 
 
-    @Operation(summary = "Get card", description = "Get all cards")
+    @Operation(summary = "Get cards", description = "Get all cards")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Card found",
                     content = @Content(mediaType = "application/json"))
     })
     ResponseEntity<PageResponse<CardDto>> getAllCards(@ParameterObject @PageableDefault(size = 6, sort = "validityPeriod") Pageable pageable);
+
+    @Operation(summary = "Get cards", description = "Get cards by filter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Card found",
+                    content = @Content(mediaType = "application/json"))
+    })
+    ResponseEntity<PageResponse<CardDto>> searchCard(@Valid @RequestBody CardSearchFilter searchFilter,
+                                                     @ParameterObject @PageableDefault(size = 6, sort = "validityPeriod") Pageable pageable);
 }

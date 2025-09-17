@@ -98,7 +98,7 @@ public class AdminCardController implements AdminCardControllerDocs {
      * @return результат фильтрации
      */
     @PostMapping("/search")
-    public ResponseEntity<PageResponse<CardDto>> searchCard(@RequestBody CardSearchFilter searchFilter,
+    public ResponseEntity<PageResponse<CardDto>> searchCard(@Valid @RequestBody CardSearchFilter searchFilter,
                                                             @PageableDefault(size = 6, sort = "validityPeriod") Pageable pageable) {
         return ResponseEntity.ok(PageResponse.from(cardService.searchCard(searchFilter, pageable)
                 .map(cardDtoFactory::createCardDtoForAdmin)));

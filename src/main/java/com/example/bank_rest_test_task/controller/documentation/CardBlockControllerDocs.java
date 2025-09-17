@@ -135,6 +135,6 @@ public interface CardBlockControllerDocs {
                     content = @Content(mediaType = "application/json"))
     })
     ResponseEntity<PageResponse<CardBlockRequestDto>> searchCardBlockRequest(
-            @RequestBody CardBlockRequestFilter filter,
-            @PageableDefault(size = 6, sort = "createAr") Pageable pageable);
+            @Valid @RequestBody CardBlockRequestFilter filter,
+            @ParameterObject @PageableDefault(size = 6, sort = "createAr") Pageable pageable);
 }
