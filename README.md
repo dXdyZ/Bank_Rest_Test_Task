@@ -21,7 +21,7 @@
 
 1.  **Клонируйте репозиторий:**
     ```bash
-    git clone https://github.com/dXdyZ/Bank_Rest/tree/main
+    git clone [https://github.com/dXdyZ/Bank_Rest/tree/main](https://github.com/dXdyZ/Bank_Rest_Test_Task)
     cd Bank_REST_Test_Task
     ```
 
